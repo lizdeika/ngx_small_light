@@ -27,10 +27,18 @@
 void ngx_http_small_light_adjust_canvas_image_offset(ngx_http_small_light_image_size_t *sz)
 {
     if (sz->dx == NGX_HTTP_SMALL_LIGHT_COORD_INVALID_VALUE) {
-        sz->dx = (sz->cw - sz->dw) * 0.5;
+        if (sz->sw < sz->dw) {
+           sz->dx = (sz->cw - sz->sw) * 0.5;
+        } else {
+           sz->dx = (sz->cw - sz->dw) * 0.5;
+        }
     }
     if (sz->dy == NGX_HTTP_SMALL_LIGHT_COORD_INVALID_VALUE) {
-        sz->dy = (sz->ch - sz->dh) * 0.5;
+        if (sz->sh < sz->dh) {
+           sz->dy = (sz->ch - sz->sh) * 0.5;
+        } else {
+           sz->dy = (sz->ch - sz->dh) * 0.5;
+        }  
     }
 }
 
