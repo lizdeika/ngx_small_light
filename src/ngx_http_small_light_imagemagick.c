@@ -100,7 +100,7 @@ ngx_int_t ngx_http_small_light_imagemagick_process(ngx_http_request_t *r, ngx_ht
     int                                     rmprof_flg, progressive_flg, cmyk2rgb_flg;
     double                                  iw, ih, q;
     char                                   *unsharp, *sharpen, *blur, *of, *of_orig;
-    MagickWand                             *trans_wand, *crop_wand;
+    MagickWand                             *trans_wand;
     DrawingWand                            *border_wand;
     PixelWand                              *bg_color, *border_color;
     GeometryInfo                            geo;
@@ -245,14 +245,12 @@ ngx_int_t ngx_http_small_light_imagemagick_process(ngx_http_request_t *r, ngx_ht
 
     /* create canvas then draw image to the canvas. */
     if (sz.cw > 0.0 && sz.ch > 0.0) {
-        crop_wand = MagickCropImage(ictx->wand, sz.cw, sz.ch, sz.sx, sz.sy);
-        if (crop_wand == NULL || crop_wand == ictx->wand) {
+        MagickCropImage(ictx->wand, sz.cw, sz.ch, sz.sx, sz.sy);
+        if (ictx->wand == NULL) {
             r->err_status = NGX_HTTP_INTERNAL_SERVER_ERROR;
             DestroyString(of_orig);
             return NGX_ERROR;
         }
-        DestroyMagickWand(ictx->wand);
-        ictx->wand = crop_wand; 
     }
 
     /* CMYK to sRGB */
