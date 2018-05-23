@@ -243,52 +243,6 @@ ngx_int_t ngx_http_small_light_imagemagick_process(ngx_http_request_t *r, ngx_ht
         ictx->wand = trans_wand;
     }
 
-    /* create canvas then draw image to the canvas. */
-    if (sz.cw > 0.0 && sz.ch > 0.0) {
-        canvas_wand  = NewMagickWand();
-        canvas_color = NewPixelWand();
-        PixelSetRed(canvas_color,   sz.cc.r / 255.0);
-        PixelSetGreen(canvas_color, sz.cc.g / 255.0);
-        PixelSetBlue(canvas_color,  sz.cc.b / 255.0);
-        PixelSetAlpha(canvas_color, sz.cc.a / 255.0);
-        status = MagickNewImage(canvas_wand, sz.cw, sz.ch, canvas_color);
-        DestroyPixelWand(canvas_color);
-        if (status == MagickFalse) {
-            r->err_status = NGX_HTTP_INTERNAL_SERVER_ERROR;
-            DestroyMagickWand(canvas_wand);
-            DestroyString(of_orig);
-            return NGX_ERROR;
-        }
-
-        status = MagickSetImageDepth(canvas_wand, MagickGetImageDepth(ictx->wand));
-        if (status == MagickFalse) {
-            r->err_status = NGX_HTTP_INTERNAL_SERVER_ERROR;
-            DestroyMagickWand(canvas_wand);
-            DestroyString(of_orig);
-            return NGX_ERROR;
-        }
-
-        status = MagickTransformImageColorspace(canvas_wand, color_space);
-        if (status == MagickFalse) {
-            r->err_status = NGX_HTTP_INTERNAL_SERVER_ERROR;
-            DestroyMagickWand(canvas_wand);
-            DestroyString(of_orig);
-            return NGX_ERROR;
-        }
-
-        ngx_http_small_light_adjust_canvas_image_offset(&sz);
-
-        status = MagickCompositeImage(canvas_wand, ictx->wand, AtopCompositeOp, sz.dx, sz.dy);
-        if (status == MagickFalse) {
-            r->err_status = NGX_HTTP_INTERNAL_SERVER_ERROR;
-            DestroyMagickWand(canvas_wand);
-            DestroyString(of_orig);
-            return NGX_ERROR;
-        }
-        DestroyMagickWand(ictx->wand);
-        ictx->wand = canvas_wand;
-    }
-
     /* CMYK to sRGB */
     cmyk2rgb_flg = ngx_http_small_light_parse_flag(NGX_HTTP_SMALL_LIGHT_PARAM_GET_LIT(&ctx->hash, "cmyk2rgb"));
     if (cmyk2rgb_flg != 0 && color_space == CMYKColorspace) {
