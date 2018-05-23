@@ -100,7 +100,7 @@ ngx_int_t ngx_http_small_light_imagemagick_process(ngx_http_request_t *r, ngx_ht
     int                                     rmprof_flg, progressive_flg, cmyk2rgb_flg;
     double                                  iw, ih, q;
     char                                   *unsharp, *sharpen, *blur, *of, *of_orig;
-    MagickWand                             *trans_wand, *canvas_wand;
+    MagickWand                             *trans_wand;
     DrawingWand                            *border_wand;
     PixelWand                              *bg_color, *border_color;
     GeometryInfo                            geo;
