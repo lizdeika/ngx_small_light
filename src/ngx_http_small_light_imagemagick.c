@@ -100,9 +100,9 @@ ngx_int_t ngx_http_small_light_imagemagick_process(ngx_http_request_t *r, ngx_ht
     int                                     rmprof_flg, progressive_flg, cmyk2rgb_flg;
     double                                  iw, ih, q;
     char                                   *unsharp, *sharpen, *blur, *of, *of_orig;
-    MagickWand                             *trans_wand;
+    MagickWand                             *trans_wand, *canvas_wand;
     DrawingWand                            *border_wand;
-    PixelWand                              *bg_color, *border_color;
+    PixelWand                              *bg_color, *canvas_color, *border_color;
     GeometryInfo                            geo;
     ngx_fd_t                                fd;
     MagickWand                             *icon_wand;
@@ -227,7 +227,7 @@ ngx_int_t ngx_http_small_light_imagemagick_process(ngx_http_request_t *r, ngx_ht
 
     /* crop, scale. */
     if (sz.scale_flg != 0) {
-        p = ngx_snprintf(crop_geo, sizeof(crop_geo) - 1, "%fx%f+%f+%f +repage", sz.cw, sz.ch, sz.sx, sz.sy);
+        p = ngx_snprintf(crop_geo, sizeof(crop_geo) - 1, "%f!x%f!+%f+%f", sz.sw, sz.sh, sz.sx, sz.sy);
         *p = '\0';
         p = ngx_snprintf(size_geo, sizeof(size_geo) - 1, "%f!x%f!",       sz.dw, sz.dh);
         *p = '\0';
@@ -241,6 +241,18 @@ ngx_int_t ngx_http_small_light_imagemagick_process(ngx_http_request_t *r, ngx_ht
         }
         DestroyMagickWand(ictx->wand);
         ictx->wand = trans_wand;
+    }
+
+    /* create canvas then draw image to the canvas. */
+    if (sz.cw > 0.0 && sz.ch > 0.0) {
+        crop_wand = MagickCropImage(ictx->wand, sz.cw, sz.ch, sz.sx, sz.sy);
+        if (crop_wand == NULL || crop_wand == ictx->wand) {
+            r->err_status = NGX_HTTP_INTERNAL_SERVER_ERROR;
+            DestroyString(of_orig);
+            return NGX_ERROR;
+        }
+        DestroyMagickWand(ictx->wand);
+        ictx->wand = crop_wand; 
     }
 
     /* CMYK to sRGB */
